@@ -22,6 +22,7 @@ public class ExchangeClient
         if (!response.IsSuccessStatusCode)
         {
             _logger.LogCritical($"HTTP request failed with status code {response.StatusCode}");
+            return null;
         }
 
         string json = response.Content.ReadAsStringAsync().Result;

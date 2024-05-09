@@ -24,6 +24,12 @@ public class KucoinService : BaseMarketService<OrderBookDataKucoin>, ICryptoMark
         };
         
         var response = await _exchangeClient.GetPriceAsync<OrderBookDataKucoin>(uriBuilder.Uri);
+
+        if (response is null)
+        {
+            return null;
+        }
+        
         var avgPrice = GetAveragePrice(response);
 
         if (avgPrice is null)

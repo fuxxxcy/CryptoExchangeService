@@ -23,6 +23,12 @@ public class BinanceService : BaseMarketService<OrderBookDataBinance>, ICryptoMa
         };
 
         var response = await _exchangeClient.GetPriceAsync<OrderBookDataBinance>(uriBuilder.Uri);
+        
+        if (response is null)
+        {
+            return null;
+        }
+        
         var avgPrice = GetAveragePrice(response);
 
         if (avgPrice is null)

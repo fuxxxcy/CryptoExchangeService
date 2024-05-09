@@ -29,7 +29,7 @@ public class ExchangeService : IExchangeService
             return null;
         }
 
-        var exchangeRateWithMaxRate = rates.MaxBy(rate => rate.Rate);
+        var exchangeRateWithMaxRate = rates.MaxBy(rate => rate?.Rate);
 
         EstimateModelResponse response = new EstimateModelResponse
         {
