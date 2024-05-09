@@ -1,0 +1,11 @@
+{
+  "Version": 1,
+  "Hash": "eGgfYTpmNM5Q9gH8IoPrR6IaIhvv31DdPsSmO1WdKs8=",
+  "Source": "CryptoExchangeRateService",
+  "BasePath": "_content/CryptoExchangeRateService",
+  "Mode": "Default",
+  "ManifestType": "Build",
+  "ReferencedProjectsConfiguration": [],
+  "DiscoveryPatterns": [],
+  "Assets": []
+}
