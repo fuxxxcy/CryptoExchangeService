@@ -13,7 +13,7 @@ public class ExchangeClient
         _logger = logger;
     }
 
-    public async Task<TResult> GetPriceAsync<TResult>(Uri requestUri) where TResult : class
+    public async Task<TResult> GetOrderBookAsync<TResult>(Uri requestUri) where TResult : class
     {
         using var client = _httpClientFactory.CreateClient();
 
@@ -26,8 +26,8 @@ public class ExchangeClient
         }
 
         string json = response.Content.ReadAsStringAsync().Result;
-
-        return JsonConvert.DeserializeObject<TResult>(json);
-
+        var result = JsonConvert.DeserializeObject<TResult>(json);
+        
+        return result;
     }
 }

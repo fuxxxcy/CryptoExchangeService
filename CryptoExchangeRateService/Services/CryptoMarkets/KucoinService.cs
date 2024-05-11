@@ -16,38 +16,50 @@ public class KucoinService : BaseMarketService<OrderBookDataKucoin>, ICryptoMark
     }
     
     public async Task<ExchangeRate> GetExchangeRateAsync(GetRatesModelRequest getRates)
-    { 
+    {
+        ExchangeRate exchangeRate = new ExchangeRate();
+        bool isReversed = false;
+        
         var uriBuilder = new UriBuilder(CryptoMarketUrls.KucoinApi) 
         { 
             Path = "/api/v1/market/orderbook/level2_20", 
             Query = $"symbol={getRates.BaseCurrency.ToUpper()}-{getRates.QuoteCurrency.ToUpper()}"
         };
         
-        var response = await _exchangeClient.GetPriceAsync<OrderBookDataKucoin>(uriBuilder.Uri);
+        var response = await _exchangeClient.GetOrderBookAsync<OrderBookDataKucoin>(uriBuilder.Uri);
 
-        if (response is null)
+        if (response is null || response.Data.Asks == null || response.Data.Bids == null)
+        {
+            uriBuilder = new UriBuilder(CryptoMarketUrls.KucoinApi) 
+            { 
+                Path = "/api/v1/market/orderbook/level2_20", 
+                Query = $"symbol={getRates.QuoteCurrency.ToUpper()}-{getRates.BaseCurrency.ToUpper()}"
+            };
+            response = await _exchangeClient.GetOrderBookAsync<OrderBookDataKucoin>(uriBuilder.Uri);
+
+            isReversed = true;
+        }
+        
+        if (response is null || response.Data.Asks == null || response.Data.Bids == null)
         {
             return null;
         }
         
-        var avgPrice = GetAveragePrice(response);
+        var avgPrice = isReversed ? (1 / GetAveragePrice(response.Data.Asks)) : GetAveragePrice(response.Data.Bids);
 
         if (avgPrice is null)
         {
             return null;
         }
 
-        var exchangeRate = new ExchangeRate
-        {
-            ExchangeName = "Kucoin",
-            Rate = avgPrice.Value
-        };
+        exchangeRate.ExchangeName = "Kucoin";
+        exchangeRate.Rate = avgPrice.Value;
 
         return exchangeRate;
     }
     
-    protected virtual decimal? GetAveragePrice(OrderBookDataKucoin model)
+    protected virtual decimal? GetAveragePrice(List<List<string>> orderBook)
     {
-        return GetAveragePrice(model.Data.Bids, model.Data.Asks);
+        return base.GetAveragePrice(orderBook);
     }
 }

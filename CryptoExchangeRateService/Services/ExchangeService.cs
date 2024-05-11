@@ -17,8 +17,8 @@ public class ExchangeService : IExchangeService
     {
         GetRatesModelRequest ratesModelRequest = new GetRatesModelRequest
         {
-            BaseCurrency = estimateModelRequest.OutputCurrency,
-            QuoteCurrency = estimateModelRequest.InputCurrency
+            BaseCurrency = estimateModelRequest.InputCurrency,
+            QuoteCurrency = estimateModelRequest.OutputCurrency
         };
 
         var rates = new ConcurrentBag<ExchangeRate>();
@@ -30,11 +30,11 @@ public class ExchangeService : IExchangeService
         }
 
         var exchangeRateWithMaxRate = rates.MaxBy(rate => rate?.Rate);
-
+        
         EstimateModelResponse response = new EstimateModelResponse
         {
             ExchangeName = exchangeRateWithMaxRate.ExchangeName,
-            OutputAmount = estimateModelRequest.InputAmount / exchangeRateWithMaxRate.Rate
+            OutputAmount = estimateModelRequest.InputAmount * exchangeRateWithMaxRate.Rate     
         };
         
         return response;

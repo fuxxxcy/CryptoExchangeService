@@ -17,36 +17,44 @@ public class BinanceService : BaseMarketService<OrderBookDataBinance>, ICryptoMa
 
     public async Task<ExchangeRate> GetExchangeRateAsync(GetRatesModelRequest getRates)
     {
+        ExchangeRate exchangeRate = new ExchangeRate();
+        bool isReversed = false;
+        
         var uriBuilder = new UriBuilder($"{CryptoMarketUrls.BinanceApi}/api/v3/depth")
         {
             Query = $"limit=10&symbol={getRates.BaseCurrency.ToUpper()}{getRates.QuoteCurrency.ToUpper()}"
         };
 
-        var response = await _exchangeClient.GetPriceAsync<OrderBookDataBinance>(uriBuilder.Uri);
+        var response = await _exchangeClient.GetOrderBookAsync<OrderBookDataBinance>(uriBuilder.Uri);
         
-        if (response is null)
+        if (response is null || response.Asks == null || response.Bids == null)
+        {
+            uriBuilder.Query = $"limit=10&symbol={getRates.QuoteCurrency.ToUpper()}{getRates.BaseCurrency.ToUpper()}";
+            response = await _exchangeClient.GetOrderBookAsync<OrderBookDataBinance>(uriBuilder.Uri);
+
+            isReversed = true;
+        }
+
+        if (response is null || response.Asks == null || response.Bids == null)
         {
             return null;
         }
         
-        var avgPrice = GetAveragePrice(response);
+        var avgPrice = isReversed ? (1 / GetAveragePrice(response.Asks)) : GetAveragePrice(response.Bids);
 
         if (avgPrice is null)
         {
             return null;
         }
 
-        var exchangeRate = new ExchangeRate
-        {
-            ExchangeName = "Binance",
-            Rate = avgPrice.Value
-        };
+        exchangeRate.ExchangeName = "Binance";
+        exchangeRate.Rate = avgPrice.Value;
 
         return exchangeRate;
     }
 
-    protected virtual decimal? GetAveragePrice(OrderBookDataBinance model)
+    protected virtual decimal? GetAveragePrice(List<List<string>> orderBook)
     {
-        return GetAveragePrice(model.Bids, model.Asks);
+        return base.GetAveragePrice(orderBook);
     }
 }

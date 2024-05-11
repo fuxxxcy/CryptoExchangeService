@@ -9,32 +9,22 @@ public abstract class BaseMarketService<TData> where TData : class
         _logger = logger;
     }
 
-    protected decimal? GetAveragePrice(List<List<string>> bids, List<List<string>> asks)
+    protected decimal? GetAveragePrice(List<List<string>> orderBook)
     {
-        decimal totalBidVolume = 0;
-        decimal totalAskVolume = 0;
-        decimal totalBidPriceVolume = 0;
-        decimal totalAskPriceVolume = 0;
+        decimal totalVolume = 0;
+        decimal totalPriceVolume = 0;
         
         try
         {
-            foreach (var bid in bids)
+            foreach (var order in orderBook)
             {
-                decimal price = decimal.Parse(bid[0]);
-                decimal volume = decimal.Parse(bid[1]);
-                totalBidVolume += volume;
-                totalBidPriceVolume += price * volume;
+                decimal price = decimal.Parse(order[0]);
+                decimal volume = decimal.Parse(order[1]);
+                totalVolume += volume;
+                totalPriceVolume += price * volume;
             }
-            
-            foreach (var ask in asks)
-            {
-                decimal price = decimal.Parse(ask[0]);
-                decimal volume = decimal.Parse(ask[1]);
-                totalAskVolume += volume;
-                totalAskPriceVolume += price * volume;
-            }
-            
-            decimal averagePrice = (totalBidPriceVolume + totalAskPriceVolume) / (totalBidVolume + totalAskVolume);
+
+            decimal averagePrice = totalPriceVolume / totalVolume;
 
             return averagePrice;
         }
